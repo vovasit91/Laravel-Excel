@@ -105,7 +105,6 @@ class Sheet
      * @param string|int  $index
      *
      * @return Sheet
-     *
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      * @throws SheetNotFoundException
      */
@@ -123,7 +122,6 @@ class Sheet
      * @param int         $index
      *
      * @return Sheet
-     *
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      * @throws SheetNotFoundException
      */
@@ -141,7 +139,6 @@ class Sheet
      * @param string      $name
      *
      * @return Sheet
-     *
      * @throws SheetNotFoundException
      */
     public static function byName(Spreadsheet $spreadsheet, string $name): Sheet
@@ -268,8 +265,6 @@ class Sheet
      */
     public function import($import, int $startRow = 1)
     {
-        $this->columns  = ColumnCollection::makeFrom($import);
-
         if ($import instanceof WithEvents) {
             $this->registerListeners($import->registerEvents());
         }
@@ -365,6 +360,7 @@ class Sheet
 
         $endRow     = EndRowFinder::find($import, $startRow, $this->worksheet->getHighestRow());
         $headingRow = HeadingRowExtractor::extract($this->worksheet, $import);
+        $columns    = ColumnCollection::makeFrom($import, $headingRow);
         $endColumn  = $import instanceof WithColumnLimit ? $import->endColumn() : null;
 
         $rows = [];
@@ -376,7 +372,7 @@ class Sheet
             }
 
             if ($import instanceof WithColumns) {
-                $row = $row->toArrayWithColumns($this->columns);
+                $row = $row->toArrayWithColumns($columns);
             } else {
                 $row = $row->toArray($nullValue, $calculateFormulas, $formatData, $endColumn);
             }
@@ -779,6 +775,7 @@ class Sheet
 
     /**
      * @param object|WithValidation $import
+     *
      * @return Closure|null
      */
     private function getPreparationCallback($import)
